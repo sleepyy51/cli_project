@@ -1,5 +1,6 @@
-from mcp.server.fastmcp import FastMCP
 from pydantic import Field
+from mcp.server.fastmcp import FastMCP
+from mcp.server.fastmcp.prompts import base
 
 mcp = FastMCP("DocumentMCP", log_level="ERROR")
 
@@ -56,31 +57,36 @@ def fetch_doc(doc_id: str) -> str:
     return docs[doc_id]
 
 @mcp.prompt(
-    name="rewrite_doc_to_markdown",
+    name="format",
     description="Rewrite a document to markdown format"
 )
-def rewrite_doc_to_markdown(document: str):
-    return f"""
-Rewrite the following document in clean Markdown.
+def format_document(
+    doc_id: str = Field(description="Id of the document to format")
+) -> list[base.Message]:
+    promt = f"""
+    Rewrite the following document in clean Markdown.
 
-Requirements:
-- Preserve all information
-- Do not change the wording or meaning
-- Use headings where appropriate
-- Use bullet lists when useful
-- Improve formatting only.
-- Do not add or remove content.
+    Requirements:
+    - Preserve all information
+    - Do not change the wording or meaning
+    - Use headings where appropriate
+    - Use bullet lists when useful
+    - Improve formatting only.
+    - Do not add or remove content.
 
-Document:
-{document}
-"""
+    Document:
+    {doc_id}
+    """
+    return [base.UserMessage(promt)]
 
 @mcp.prompt(
     name="summarize_doc",
     description="Summarize document"
 )
-def summarize_doc(document : str):
-    return f"""
+def summarize_doc(
+    doc_id: str = Field(description="Id of the document to summarize")
+) -> list[base.Message]:
+    promt = f"""
     Summarize the following document.
 
     Requeriments:
@@ -91,8 +97,9 @@ def summarize_doc(document : str):
     - Keep all information factual
 
     Document:
-    {document}
-"""
+    {doc_id}
+    """
+    return [base.UserMessage(promt)]
 
 if __name__ == "__main__":
     mcp.run(transport="stdio")
