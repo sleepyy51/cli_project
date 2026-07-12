@@ -14,7 +14,7 @@ docs = {
 }
 
 @mcp.tool(
-    name="read_doc_contens",
+    name="read_doc_contents",
     description="Read the contents of a document and return it as a string"
 )
 def read_documents(
@@ -25,8 +25,7 @@ def read_documents(
     
     return docs[doc_id]
 
-# TODO: Write a tool to edit a doc
-mcp.tool(
+@mcp.tool(
     name="edit_document",
     description="Edit a document by replacing a string in the documents content with a new string"
 )
@@ -40,11 +39,69 @@ def edit_document(
 
     docs[doc_id] = docs[doc_id].replace(old_str, new_str)
 
-# TODO: Write a resource to return all doc id's
-# TODO: Write a resource to return the contents of a particular doc
-# TODO: Write a prompt to rewrite a doc in markdown format
-# TODO: Write a prompt to summarize a doc
+@mcp.tool(
+    name="list_documents",
+    description="Lists all documents ids and their number"
+)
+def list_documents():
+    if not docs:
+        raise ValueError("There aren't any documents in the list")
+    
+    return{
+        "documents": list(docs.keys()),
+        "count": len(docs)
+    }
+    
+@mcp.tool(
+    name="doc_contents",
+    description="Returns the contents of a doc as a string"
+)
+def doc_contents(
+    doc_id: str = Field(description="Id of the document we are looking for")
+):
+    if doc_id not in docs:
+        raise ValueError(f"Document with id{doc_id} not found")
+    
+    return docs[doc_id]
 
+@mcp.prompt(
+    name="rewrite_doc_to_markdown",
+    description="Rewrite a document to markdown format"
+)
+def rewrite_doc_to_markdown(document: str):
+    return f"""
+Rewrite the following document in clean Markdown.
+
+Requirements:
+- Preserve all information
+- Do not change the wording or meaning
+- Use headings where appropriate
+- Use bullet lists when useful
+- Improve formatting only.
+- Do not add or remove content.
+
+Document:
+{document}
+"""
+
+@mcp.prompt(
+    name="summarize_doc",
+    description="Summarize document"
+)
+def summarize_doc(document : str):
+    return f"""
+    Summarize the following document.
+
+    Requeriments:
+    - Keep the summary under 150 words
+    - Preserve all the important facts
+    - Do not invent information
+    - Do not draw conclusions
+    - Keep all information factual
+
+    Document:
+    {document}
+"""
 
 if __name__ == "__main__":
     mcp.run(transport="stdio")
