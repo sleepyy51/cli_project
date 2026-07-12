@@ -38,30 +38,21 @@ def edit_document(
         raise ValueError(f"Doc with id {doc_id} not found!")
 
     docs[doc_id] = docs[doc_id].replace(old_str, new_str)
+    
+@mcp.resource(
+    "docs://documents",
+    mime_type="application/json"
+)
+def list_docs() -> list[str]:
+    return list(docs.keys())
 
-@mcp.tool(
-    name="list_documents",
-    description="Lists all documents ids and their number"
+@mcp.resource(
+    "docs://documents/{doc_id}",
+    mime_type="text/plain"
 )
-def list_documents():
-    if not docs:
-        raise ValueError("There aren't any documents in the list")
-    
-    return{
-        "documents": list(docs.keys()),
-        "count": len(docs)
-    }
-    
-@mcp.tool(
-    name="doc_contents",
-    description="Returns the contents of a doc as a string"
-)
-def doc_contents(
-    doc_id: str = Field(description="Id of the document we are looking for")
-):
+def fetch_doc(doc_id: str) -> str:
     if doc_id not in docs:
-        raise ValueError(f"Document with id{doc_id} not found")
-    
+        raise ValueError(f"Doc with id {doc_id} not found")
     return docs[doc_id]
 
 @mcp.prompt(
